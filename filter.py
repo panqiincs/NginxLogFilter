@@ -29,6 +29,8 @@ def request_filter(request):
         return False
     if re.search(r"^\/atom.xml", url):
         return False
+    if re.search(r"^\/robots.txt", url):
+        return False
 
     return True
 
@@ -40,11 +42,11 @@ def status_filter(status):
 
 # USER-AGENT filter
 def agent_filter(agent):
-    match = re.search(r"[Bb]ot", agent)
-    if match is not None:
+    if re.search(r"[Bb]ot", agent):
         return False
-    match = re.search(r"[Ss]pider", agent)
-    if match is not None:
+    if re.search(r"[Ss]pider", agent):
+        return False
+    if re.search(r"Embedly", agent):
         return False
     return True
 
