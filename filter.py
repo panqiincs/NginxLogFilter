@@ -16,10 +16,6 @@ def request_filter(request):
     slices = request.split(' ')
     method = slices[0]
     url    = slices[1]
-    # removal starts at '?'
-    pos = url.find('?')
-    if pos != -1:
-        url = url[:pos]
 
     if method != 'GET':
         return False
@@ -109,8 +105,13 @@ while True:
     if addr_filter(addr) == False:
         continue
 
-    # Only show visitor's ip and target page
+    # print IP
     print('{:16s}'.format(addr), end=' ')
-    print(' ', request.split(' ')[1])
+    # print URL
+    url = request.split(' ')[1]
+    pos = url.find('?')
+    if pos != -1:
+        url = url[:pos]
+    print(' ', url)
 
 fh.close()
