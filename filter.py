@@ -16,6 +16,10 @@ def request_filter(request):
     slices = request.split(' ')
     method = slices[0]
     url    = slices[1]
+    # removal starts at '?'
+    pos = url.find('?')
+    if pos != -1:
+        url = url[:pos]
 
     if method != 'GET':
         return False
