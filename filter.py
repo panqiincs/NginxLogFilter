@@ -6,13 +6,10 @@ import re
 
 # ADDRESS filter
 def addr_filter(addr):
-    match = re.search(r"^117.140.3", addr)
-    if match is not None:
+    # omit some addresses
+    if re.search(r"^117.140.3", addr):
         return False
     return True
-
-def time_filter(time):
-    return False
 
 # REQUEST filter
 def request_filter(request):
@@ -22,21 +19,15 @@ def request_filter(request):
 
     if method != 'GET':
         return False
-
-    match = re.search(r"^\/css", url)
-    if match is not None:
+    if re.search(r"^\/css", url):
         return False
-    match = re.search(r"^\/images", url)
-    if match is not None:
+    if re.search(r"^\/images", url):
         return False
-    match = re.search(r"^\/js", url)
-    if match is not None:
+    if re.search(r"^\/js", url):
         return False
-    match = re.search(r"^\/lib", url)
-    if match is not None:
+    if re.search(r"^\/lib", url):
         return False
-    match = re.search(r"^\/atom.xml", url)
-    if match is not None:
+    if re.search(r"^\/atom.xml", url):
         return False
 
     return True
@@ -49,9 +40,11 @@ def status_filter(status):
 
 # USER-AGENT filter
 def agent_filter(agent):
-    if re.search(r"[Bb]ot", agent):
+    match = re.search(r"[Bb]ot", agent)
+    if match is not None:
         return False
-    if re.search(r"[Ss]pider", agent):
+    match = re.search(r"[Ss]pider", agent)
+    if match is not None:
         return False
     return True
 
@@ -67,7 +60,7 @@ def extract_info(line):
     # status
     status = splits[2].lstrip().split(' ')[0]
     # bytes_sent
-    # bypes = splits[2].lstrip().split(' ')[1]
+    # bytes = splits[2].lstrip().split(' ')[1]
     # http_referer
     # referer = splits[3]
     # user_agent
@@ -105,8 +98,8 @@ while True:
     addr = info[0]
     if addr_filter(addr) == False:
         continue
-    time = info[1]
 
-    print(info)
+    # Only show visitor's ip and target page
+    print(addr, request.split(' ')[1])
 
 fh.close()
