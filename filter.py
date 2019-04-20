@@ -19,6 +19,7 @@ def request_filter(request):
 
     if method != 'GET':
         return False
+    # Exclude some pages
     if re.search(r"^\/css", url):
         return False
     if re.search(r"^\/images", url):
@@ -42,13 +43,16 @@ def status_filter(status):
 
 # USER-AGENT filter
 def agent_filter(agent):
+    # Exclude spiders
     if re.search(r"[Bb]ot", agent):
         return False
     if re.search(r"[Ss]pider", agent):
         return False
     if re.search(r"Embedly", agent):
         return False
+
     return True
+
 
 # EXTRACT information from a record
 def extract_info(line):
@@ -102,6 +106,7 @@ while True:
         continue
 
     # Only show visitor's ip and target page
-    print(addr, request.split(' ')[1])
+    print('{:16s}'.format(addr), end=' ')
+    print(' ', request.split(' ')[1])
 
 fh.close()
