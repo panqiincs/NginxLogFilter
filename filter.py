@@ -7,7 +7,9 @@ import re
 # ADDRESS filter
 def addr_filter(addr):
     # omit some addresses
-    if re.search(r"^117.140.3", addr):
+    ips = (re.search(r"^117.140.3", addr) != None) or \
+          (re.search(r"^45.77.182.191", addr) != None)
+    if ips:
         return False
     return True
 
@@ -16,24 +18,21 @@ def request_filter(request):
     slices = request.split(' ')
     method = slices[0]
     url    = slices[1]
-
+    # Method GET
     if method != 'GET':
         return False
-    # Exclude some pages
-    if re.search(r"^\/css", url):
-        return False
-    if re.search(r"^\/images", url):
-        return False
-    if re.search(r"^\/js", url):
-        return False
-    if re.search(r"^\/lib", url):
-        return False
-    if re.search(r"^\/atom.xml", url):
-        return False
-    if re.search(r"^\/robots.txt", url):
-        return False
-
-    return True
+    # Interested pages
+    pages = (re.search(r"^\/$", url) != None) or \
+            (re.search(r"^\/20", url) != None) or \
+            (re.search(r"^\/archives", url) != None) or \
+            (re.search(r"^\/categories", url) != None) or \
+            (re.search(r"^\/tags", url) != None) or \
+            (re.search(r"^\/series", url) != None) or \
+            (re.search(r"^\/about", url) != None) or \
+            (re.search(r"^\/page", url) != None)
+    if pages:
+        return True
+    return False
 
 # STATUS filter
 def status_filter(status):
@@ -43,7 +42,7 @@ def status_filter(status):
 
 # USER-AGENT filter
 def agent_filter(agent):
-    # Exclude spiders
+    # Exclude robots and spiders
     if re.search(r"[Bb]ot", agent):
         return False
     if re.search(r"[Ss]pider", agent):
@@ -104,6 +103,7 @@ while True:
     addr = info[0]
     if addr_filter(addr) == False:
         continue
+    time = info[1]
 
     # print IP
     print('{:16s}'.format(addr), end=' ')
