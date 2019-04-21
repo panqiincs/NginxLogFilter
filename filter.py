@@ -49,6 +49,8 @@ def agent_filter(agent):
         return False
     if re.search(r"[Cc]rawler", agent):
         return False
+    if re.search(r"[Ff]etcher", agent):
+        return False
     # Empty user-agent
     if re.search(r"^\-", agent):
         return False
@@ -58,6 +60,30 @@ def agent_filter(agent):
     if re.search(r"DNS", agent):
         return False
     if re.search(r"ZhihuDaily", agent):
+        return False
+    if re.search(r"Disqus", agent):
+        return False
+    if re.search(r"Go-http-client", agent):
+        return False
+    if re.search(r"[Gg]oogle", agent):
+        return False
+    if re.search(r"[Cc]loudflare", agent):
+        return False
+    if re.search(r"python-requests", agent):
+        return False
+    if re.search(r"zgrab", agent):
+        return False
+    if re.search(r"Feedly", agent):
+        return False
+    if re.search(r"Detection", agent):
+        return False
+    if re.search(r"[Ss]crapy", agent):
+        return False
+    if re.search(r"[Ww]get", agent):
+        return False
+    if re.search(r"evc-batch", agent):
+        return False
+    if re.search(r"[Rr]uby", agent):
         return False
 
     return True
@@ -125,5 +151,7 @@ while True:
     if pos != -1:
         url = url[:pos]
     print(' ', url)
+    #print(' ', url, end='         ')
+    #print(agent)
 
 fh.close()
