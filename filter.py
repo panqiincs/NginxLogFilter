@@ -103,7 +103,9 @@ while True:
     # Method GET
     if method != 'GET':
         continue
-    if re.search(r"^\/js", url):
+    runjs = re.search(r"^\/js\/.*\.js", url) or \
+            re.search(r"^\/lib\/.*\.js", url)
+    if runjs:
         if addr not in valid_user:
             valid_user.add(addr)
 
