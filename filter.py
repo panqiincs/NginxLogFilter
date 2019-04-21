@@ -33,36 +33,8 @@ def agent_filter(agent):
     # Empty user-agent
     if re.search(r"^\-", agent):
         return False
-    # Other conditions
-    if re.search(r"Embedly", agent):
-        return False
+    # DNS
     if re.search(r"DNS", agent):
-        return False
-    if re.search(r"ZhihuDaily", agent):
-        return False
-    if re.search(r"Disqus", agent):
-        return False
-    if re.search(r"Go-http-client", agent):
-        return False
-    if re.search(r"[Gg]oogle", agent):
-        return False
-    if re.search(r"[Cc]loudflare", agent):
-        return False
-    if re.search(r"python-requests", agent):
-        return False
-    if re.search(r"zgrab", agent):
-        return False
-    if re.search(r"Feedly", agent):
-        return False
-    if re.search(r"Detection", agent):
-        return False
-    if re.search(r"[Ss]crapy", agent):
-        return False
-    if re.search(r"[Ww]get", agent):
-        return False
-    if re.search(r"evc-batch", agent):
-        return False
-    if re.search(r"[Rr]uby", agent):
         return False
 
     return True
@@ -80,9 +52,8 @@ def easy_filter(info):
         return False
     addr = info[0]
     if addr_filter(addr) == False:
-        return False 
+        return False
     return True
-
 
 # EXTRACT information from a record
 def extract_info(line):
@@ -95,10 +66,6 @@ def extract_info(line):
     request = splits[1]
     # status
     status = splits[2].lstrip().split(' ')[0]
-    # body_bytes_sent
-    # bytes = splits[2].lstrip().split(' ')[1]
-    # http_referer
-    # referer = splits[3]
     # http_user_agent
     agent = splits[5]
 
@@ -117,7 +84,6 @@ if len(sys.argv) != 2:
 fh = open(sys.argv[1], 'r')
 
 valid_user = set()
-
 #
 # First traverse, find ips which load javascript
 while True:
@@ -142,7 +108,6 @@ while True:
             valid_user.add(addr)
 
 fh.close()
-
 
 fh = open(sys.argv[1], 'r')
 #
