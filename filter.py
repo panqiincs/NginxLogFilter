@@ -13,27 +13,6 @@ def addr_filter(addr):
         return False
     return True
 
-# REQUEST filter
-def request_filter(request):
-    slices = request.split(' ')
-    method = slices[0]
-    url    = slices[1]
-    # Method GET
-    if method != 'GET':
-        return False
-    # Interested pages
-    pages = (re.search(r"^\/$", url) != None) or \
-            (re.search(r"^\/20", url) != None) or \
-            (re.search(r"^\/archives", url) != None) or \
-            (re.search(r"^\/categories", url) != None) or \
-            (re.search(r"^\/tags", url) != None) or \
-            (re.search(r"^\/series", url) != None) or \
-            (re.search(r"^\/about", url) != None) or \
-            (re.search(r"^\/page", url) != None)
-    if pages:
-        return True
-    return False
-
 # STATUS filter
 def status_filter(status):
     if (status == '200'):
@@ -88,6 +67,22 @@ def agent_filter(agent):
 
     return True
 
+# If   STATUS != 200
+#   or AGENT  == spider
+#   or ADDR   == local
+# return False
+def easy_filter(info):
+    status = info[3]
+    if status_filter(status) == False:
+        return False
+    agent = info[4]
+    if agent_filter(agent) == False:
+        return False
+    addr = info[0]
+    if addr_filter(addr) == False:
+        return False 
+    return True
+
 
 # EXTRACT information from a record
 def extract_info(line):
@@ -129,17 +124,12 @@ while True:
     line = fh.readline()
     if not line:
         break
-    info = extract_info(line)
 
-    status = info[3]
-    if status_filter(status) == False:
+    info = extract_info(line)
+    if easy_filter(info) == False:
         continue
-    agent = info[4]
-    if agent_filter(agent) == False:
-        continue
+
     addr = info[0]
-    if addr_filter(addr) == False:
-        continue
     request = info[2]
     slices = request.split(' ')
     method = slices[0]
@@ -161,18 +151,12 @@ while True:
     line = fh.readline()
     if not line:
         break
+
     info = extract_info(line)
+    if easy_filter(info) == False:
+        continue
 
-    status = info[3]
-    if status_filter(status) == False:
-        continue
-    agent = info[4]
-    if agent_filter(agent) == False:
-        continue
     addr = info[0]
-    if addr_filter(addr) == False:
-        continue
-
     request = info[2]
     slices = request.split(' ')
     method = slices[0]
