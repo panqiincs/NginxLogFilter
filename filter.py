@@ -107,6 +107,8 @@ while True:
 
     # print IP
     print('{:16s}'.format(addr), end=' ')
+    # print TIME
+    print('{:20s}'.format(time), end=' ')
     # print URL
     url = request.split(' ')[1]
     pos = url.find('?')
