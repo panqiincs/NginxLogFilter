@@ -121,6 +121,10 @@ if len(sys.argv) != 2:
 
 fh = open(sys.argv[1], 'r')
 
+valid_user = set()
+
+#
+# First traverse, find ips which load javascript
 while True:
     line = fh.readline()
     if not line:
@@ -130,8 +134,37 @@ while True:
     status = info[3]
     if status_filter(status) == False:
         continue
+    agent = info[4]
+    if agent_filter(agent) == False:
+        continue
+    addr = info[0]
+    if addr_filter(addr) == False:
+        continue
     request = info[2]
-    if request_filter(request) == False:
+    slices = request.split(' ')
+    method = slices[0]
+    url    = slices[1]
+    # Method GET
+    if method != 'GET':
+        continue
+    if re.search(r"^\/js", url):
+        if addr not in valid_user:
+            valid_user.add(addr)
+
+fh.close()
+
+
+fh = open(sys.argv[1], 'r')
+#
+# Second traverse, print REAL users
+while True:
+    line = fh.readline()
+    if not line:
+        break
+    info = extract_info(line)
+
+    status = info[3]
+    if status_filter(status) == False:
         continue
     agent = info[4]
     if agent_filter(agent) == False:
@@ -139,8 +172,30 @@ while True:
     addr = info[0]
     if addr_filter(addr) == False:
         continue
-    time = info[1]
 
+    request = info[2]
+    slices = request.split(' ')
+    method = slices[0]
+    url    = slices[1]
+    # Method GET
+    if method != 'GET':
+        continue
+    if addr not in valid_user:
+        continue
+    #print(addr)
+    # Interested pages
+    pages = (re.search(r"^\/$", url) != None) or \
+            (re.search(r"^\/20", url) != None) or \
+            (re.search(r"^\/archives", url) != None) or \
+            (re.search(r"^\/categories", url) != None) or \
+            (re.search(r"^\/tags", url) != None) or \
+            (re.search(r"^\/series", url) != None) or \
+            (re.search(r"^\/about", url) != None) or \
+            (re.search(r"^\/page", url) != None)
+    if pages == False:
+        continue
+
+    time = info[1]
     # print IP
     print('{:16s}'.format(addr), end=' ')
     # print TIME
