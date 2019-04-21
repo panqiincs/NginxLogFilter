@@ -49,7 +49,15 @@ def agent_filter(agent):
         return False
     if re.search(r"[Cc]rawler", agent):
         return False
+    # Empty user-agent
+    if re.search(r"^\-", agent):
+        return False
+    # Other conditions
     if re.search(r"Embedly", agent):
+        return False
+    if re.search(r"DNS", agent):
+        return False
+    if re.search(r"ZhihuDaily", agent):
         return False
 
     return True
@@ -66,11 +74,11 @@ def extract_info(line):
     request = splits[1]
     # status
     status = splits[2].lstrip().split(' ')[0]
-    # bytes_sent
+    # body_bytes_sent
     # bytes = splits[2].lstrip().split(' ')[1]
     # http_referer
     # referer = splits[3]
-    # user_agent
+    # http_user_agent
     agent = splits[5]
 
     info = [addr, time, request, status, agent]
