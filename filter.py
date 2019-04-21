@@ -42,10 +42,12 @@ def status_filter(status):
 
 # USER-AGENT filter
 def agent_filter(agent):
-    # Exclude robots and spiders
+    # Exclude robots, spiders and crawlers
     if re.search(r"[Bb]ot", agent):
         return False
     if re.search(r"[Ss]pider", agent):
+        return False
+    if re.search(r"[Cc]rawler", agent):
         return False
     if re.search(r"Embedly", agent):
         return False
