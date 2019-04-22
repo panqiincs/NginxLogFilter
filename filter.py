@@ -6,7 +6,7 @@ import re
 
 # ADDRESS filter
 def addr_filter(addr):
-    # omit some addresses
+    # Omit some addresses
     ips = (re.search(r"^117.140.3", addr) != None) or \
           (re.search(r"^45.77.182.191", addr) != None)
     if ips:
@@ -68,10 +68,10 @@ def extract_info(line):
     status = splits[2].lstrip().split(' ')[0]
     # http_user_agent
     agent = splits[5]
-
+    # all info
     info = [addr, time, request, status, agent]
-    return info
 
+    return info
 
 
 # Run the program:
@@ -81,13 +81,12 @@ if len(sys.argv) != 2:
     print("Usage: ./filter.py access.log")
     sys.exit()
 
-fh = open(sys.argv[1], 'r')
-
-valid_user = set()
+fin = open(sys.argv[1], 'r')
 #
 # First traverse, find ips which load javascript
+valid_user = set()
 while True:
-    line = fh.readline()
+    line = fin.readline()
     if not line:
         break
 
@@ -109,13 +108,11 @@ while True:
         if addr not in valid_user:
             valid_user.add(addr)
 
-fh.close()
-
-fh = open(sys.argv[1], 'r')
 #
 # Second traverse, print REAL users
+fin.seek(0)
 while True:
-    line = fh.readline()
+    line = fin.readline()
     if not line:
         break
 
@@ -133,7 +130,6 @@ while True:
         continue
     if addr not in valid_user:
         continue
-    #print(addr)
     # Interested pages
     pages = (re.search(r"^\/$", url) != None) or \
             (re.search(r"^\/20", url) != None) or \
@@ -146,18 +142,15 @@ while True:
     if pages == False:
         continue
 
-    time = info[1]
-    # print IP
     print('{:16s}'.format(addr), end=' ')
-    # print TIME
+
+    time = info[1]
     print('{:20s}'.format(time), end=' ')
-    # print URL
+
     url = request.split(' ')[1]
     pos = url.find('?')
     if pos != -1:
         url = url[:pos]
     print(' ', url)
-    #print(' ', url, end='         ')
-    #print(agent)
 
-fh.close()
+fin.close()
