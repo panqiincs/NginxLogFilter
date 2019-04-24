@@ -74,83 +74,79 @@ def extract_info(line):
     return info
 
 
-# Run the program:
-# $ ./filter.py access.log > result.txt
-#
-if len(sys.argv) != 2:
-    print("Usage: ./filter.py access.log")
-    sys.exit()
+def run():
+    if len(sys.argv) != 2:
+        print("Usage: ./filter.py access.log")
+        sys.exit()
+    fin = open(sys.argv[1], 'r')
 
-fin = open(sys.argv[1], 'r')
-#
-# First traverse, find ips which load javascript
-valid_user = set()
-while True:
-    line = fin.readline()
-    if not line:
-        break
+    # First traverse, find ips which load javascript
+    valid_user = set()
+    while True:
+        line = fin.readline()
+        if not line:
+            break
+        info = extract_info(line)
+        if easy_filter(info) == False:
+            continue
 
-    info = extract_info(line)
-    if easy_filter(info) == False:
-        continue
+        addr = info[0]
+        request = info[2]
+        slices = request.split(' ')
+        method = slices[0]
+        url    = slices[1]
+        # Method GET
+        if method != 'GET':
+            continue
+        runjs = re.search(r"^\/js\/.*\.js", url) or \
+                re.search(r"^\/lib\/.*\.js", url)
+        if runjs:
+            if addr not in valid_user:
+                valid_user.add(addr)
 
-    addr = info[0]
-    request = info[2]
-    slices = request.split(' ')
-    method = slices[0]
-    url    = slices[1]
-    # Method GET
-    if method != 'GET':
-        continue
-    runjs = re.search(r"^\/js\/.*\.js", url) or \
-            re.search(r"^\/lib\/.*\.js", url)
-    if runjs:
+    # Second traverse, print REAL users
+    fin.seek(0)
+    while True:
+        line = fin.readline()
+        if not line:
+            break
+        info = extract_info(line)
+        if easy_filter(info) == False:
+            continue
+
+        addr = info[0]
+        request = info[2]
+        slices = request.split(' ')
+        method = slices[0]
+        url    = slices[1]
+        # Method GET
+        if method != 'GET':
+            continue
         if addr not in valid_user:
-            valid_user.add(addr)
+            continue
+        # Interested pages
+        pages = (re.search(r"^\/$", url) != None) or \
+                (re.search(r"^\/20", url) != None) or \
+                (re.search(r"^\/archives", url) != None) or \
+                (re.search(r"^\/categories", url) != None) or \
+                (re.search(r"^\/tags", url) != None) or \
+                (re.search(r"^\/series", url) != None) or \
+                (re.search(r"^\/about", url) != None) or \
+                (re.search(r"^\/page", url) != None)
+        if pages == False:
+            continue
 
-#
-# Second traverse, print REAL users
-fin.seek(0)
-while True:
-    line = fin.readline()
-    if not line:
-        break
+        print('{:16s}'.format(addr), end=' ')
+        time = info[1]
+        print('{:20s}'.format(time), end=' ')
+        url = request.split(' ')[1]
+        pos = url.find('?')
+        if pos != -1:
+            url = url[:pos]
+        print(' ', url)
 
-    info = extract_info(line)
-    if easy_filter(info) == False:
-        continue
+    fin.close()
 
-    addr = info[0]
-    request = info[2]
-    slices = request.split(' ')
-    method = slices[0]
-    url    = slices[1]
-    # Method GET
-    if method != 'GET':
-        continue
-    if addr not in valid_user:
-        continue
-    # Interested pages
-    pages = (re.search(r"^\/$", url) != None) or \
-            (re.search(r"^\/20", url) != None) or \
-            (re.search(r"^\/archives", url) != None) or \
-            (re.search(r"^\/categories", url) != None) or \
-            (re.search(r"^\/tags", url) != None) or \
-            (re.search(r"^\/series", url) != None) or \
-            (re.search(r"^\/about", url) != None) or \
-            (re.search(r"^\/page", url) != None)
-    if pages == False:
-        continue
 
-    print('{:16s}'.format(addr), end=' ')
-
-    time = info[1]
-    print('{:20s}'.format(time), end=' ')
-
-    url = request.split(' ')[1]
-    pos = url.find('?')
-    if pos != -1:
-        url = url[:pos]
-    print(' ', url)
-
-fin.close()
+if __name__ == "__main__":
+    run()
