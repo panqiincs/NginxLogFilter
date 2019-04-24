@@ -13,12 +13,6 @@ def addr_filter(addr):
         return False
     return True
 
-# STATUS filter
-def status_filter(status):
-    if (status == '200'):
-        return True
-    return False
-
 # USER-AGENT filter
 def agent_filter(agent):
     # Exclude robots, spiders and crawlers
@@ -39,92 +33,76 @@ def agent_filter(agent):
 
     return True
 
-# If   STATUS != 200
-#   or AGENT  == spider
-#   or ADDR   == local
-# return False
-def easy_filter(info):
-    status = info[3]
-    if status_filter(status) == False:
-        return False
-    agent = info[4]
-    if agent_filter(agent) == False:
-        return False
-    addr = info[0]
-    if addr_filter(addr) == False:
-        return False
-    return True
-
 # EXTRACT information from a record
 def extract_info(line):
     splits = line.split('"')
-    # remote_addr
-    addr = splits[0].split(' ')[0]
-    # time_local
-    time = splits[0].split(' ')[3][1:]
-    # request
-    request = splits[1]
-    # status
-    status = splits[2].lstrip().split(' ')[0]
-    # http_user_agent
-    agent = splits[5]
-    # all info
-    info = [addr, time, request, status, agent]
-
+    addr = splits[0].split(' ')[0]               # remote_addr
+    time = splits[0].split(' ')[3][1:]           # time_local
+    request = splits[1]                          # request
+    status = splits[2].lstrip().split(' ')[0]    # status
+    agent = splits[5]                            # http_user_agent
+    info = [addr, time, request, status, agent]  # all info
     return info
+
+def get_record_list():
+    fin = open(sys.argv[1], 'r')
+    res = list()
+    while True:
+        line = fin.readline()
+        if not line:
+            break
+        info = extract_info(line)
+
+        status = info[3]
+        if status != '200':
+            continue
+        agent = info[4]
+        if agent_filter(agent) == False:
+            continue
+        addr = info[0]
+        if addr_filter(addr) == False:
+            continue
+        request = info[2]
+        slices = request.split(' ')
+        method = slices[0]
+        if method != 'GET':
+            continue
+        url = slices[1]
+        pos = url.find('?')
+        if pos != -1:
+            url = url[:pos]
+
+        time = info[1]
+
+        item = (addr, time, url)
+        res.append(item)
+
+    fin.close()
+    return res
 
 
 def run():
     if len(sys.argv) != 2:
         print("Usage: ./filter.py access.log")
         sys.exit()
-    fin = open(sys.argv[1], 'r')
 
+    rlist = get_record_list()
     # First traverse, find ips which load javascript
     valid_user = set()
-    while True:
-        line = fin.readline()
-        if not line:
-            break
-        info = extract_info(line)
-        if easy_filter(info) == False:
-            continue
-
-        addr = info[0]
-        request = info[2]
-        slices = request.split(' ')
-        method = slices[0]
-        url    = slices[1]
-        # Method GET
-        if method != 'GET':
-            continue
+    for i in range(len(rlist)):
+        url = rlist[i][2]
+        addr = rlist[i][0]
         runjs = re.search(r"^\/js\/.*\.js", url) or \
                 re.search(r"^\/lib\/.*\.js", url)
         if runjs:
             if addr not in valid_user:
                 valid_user.add(addr)
 
-    # Second traverse, print REAL users
-    fin.seek(0)
-    while True:
-        line = fin.readline()
-        if not line:
-            break
-        info = extract_info(line)
-        if easy_filter(info) == False:
-            continue
-
-        addr = info[0]
-        request = info[2]
-        slices = request.split(' ')
-        method = slices[0]
-        url    = slices[1]
-        # Method GET
-        if method != 'GET':
-            continue
+    for i in range(len(rlist)):
+        addr = rlist[i][0]
         if addr not in valid_user:
             continue
-        # Interested pages
+        url = rlist[i][2]
         pages = (re.search(r"^\/$", url) != None) or \
                 (re.search(r"^\/20", url) != None) or \
                 (re.search(r"^\/archives", url) != None) or \
@@ -137,16 +115,9 @@ def run():
             continue
 
         print('{:16s}'.format(addr), end=' ')
-        time = info[1]
+        time = rlist[i][1]
         print('{:20s}'.format(time), end=' ')
-        url = request.split(' ')[1]
-        pos = url.find('?')
-        if pos != -1:
-            url = url[:pos]
         print(' ', url)
-
-    fin.close()
-
 
 if __name__ == "__main__":
     run()
