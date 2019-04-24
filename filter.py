@@ -1,7 +1,6 @@
 #!/usr/bin/python3
 
 import sys
-import os
 import re
 
 # ADDRESS filter
@@ -44,6 +43,8 @@ def extract_info(line):
     info = [addr, time, request, status, agent]  # all info
     return info
 
+# Basic filter
+#
 def get_record_list():
     fin = open(sys.argv[1], 'r')
     res = list()
@@ -56,17 +57,21 @@ def get_record_list():
         status = info[3]
         if status != '200':
             continue
+
         agent = info[4]
         if agent_filter(agent) == False:
             continue
+
         addr = info[0]
         if addr_filter(addr) == False:
             continue
+
         request = info[2]
         slices = request.split(' ')
         method = slices[0]
         if method != 'GET':
             continue
+
         url = slices[1]
         pos = url.find('?')
         if pos != -1:
@@ -87,7 +92,8 @@ def run():
         sys.exit()
 
     rlist = get_record_list()
-    # First traverse, find ips which load javascript
+
+    # Find users requesting for js
     valid_user = set()
     for i in range(len(rlist)):
         url = rlist[i][2]
@@ -97,7 +103,7 @@ def run():
         if runjs:
             if addr not in valid_user:
                 valid_user.add(addr)
-
+    # Find users requesting for html pages
     for i in range(len(rlist)):
         addr = rlist[i][0]
         if addr not in valid_user:
@@ -113,11 +119,12 @@ def run():
                 (re.search(r"^\/page", url) != None)
         if pages == False:
             continue
-
-        print('{:16s}'.format(addr), end=' ')
+        # Print addr, time, url
+        print('{:15s}'.format(addr), end='    ')
         time = rlist[i][1]
-        print('{:20s}'.format(time), end=' ')
-        print(' ', url)
+        print('{:20s}'.format(time), end='    ')
+        print(url)
+
 
 if __name__ == "__main__":
     run()
