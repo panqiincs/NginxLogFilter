@@ -94,20 +94,37 @@ def run():
     rlist = get_record_list()
 
     # Find users requesting for js
-    valid_user = set()
+    user_scores = dict()
     for i in range(len(rlist)):
-        url = rlist[i][2]
         addr = rlist[i][0]
-        runjs = re.search(r"^\/js\/.*\.js", url) or \
-                re.search(r"^\/lib\/.*\.js", url)
-        if runjs:
-            if addr not in valid_user:
-                valid_user.add(addr)
+        if addr not in user_scores:
+            user_scores[addr] = 0
+
+        url = rlist[i][2]
+        runlibcss = re.search(r"^\/lib\/font", url)
+        if runlibcss:
+            user_scores[addr] = user_scores[addr] | 1
+        runcsscss = re.search(r"^\/css\/.*\.css", url)
+        if runcsscss:
+            user_scores[addr] = user_scores[addr] | 2
+        runlibjs = re.search(r"^\/lib\/.*\.js", url)
+        if runlibjs:
+            user_scores[addr] = user_scores[addr] | 4
+        runjsjs = re.search(r"^\/js\/.*\.js", url)
+        if runjsjs:
+            user_scores[addr] = user_scores[addr] | 8
+        runimages = re.search(r"^\/images\/.*\.png", url)
+        if runimages:
+            user_scores[addr] = user_scores[addr] | 16
+
     # Find users requesting for html pages
     for i in range(len(rlist)):
         addr = rlist[i][0]
-        if addr not in valid_user:
+        if addr not in user_scores:
             continue
+        if user_scores[addr] != 31:
+            continue
+
         url = rlist[i][2]
         pages = (re.search(r"^\/$", url) != None) or \
                 (re.search(r"^\/20", url) != None) or \
@@ -116,7 +133,10 @@ def run():
                 (re.search(r"^\/tags", url) != None) or \
                 (re.search(r"^\/series", url) != None) or \
                 (re.search(r"^\/about", url) != None) or \
-                (re.search(r"^\/page", url) != None)
+                (re.search(r"^\/page", url) != None) or \
+                (re.search(r"^\/404.html", url) != None) or \
+                (re.search(r"^\/index.html", url) != None) or \
+                (re.search(r"^\/sitemap.xml", url) != None)
         if pages == False:
             continue
         # Print addr, time, url
