@@ -55,7 +55,7 @@ def get_record_list():
         info = extract_info(line)
 
         status = info[3]
-        if status != '200':
+        if status[0] != '2' and status[0] != '3':
             continue
 
         agent = info[4]
@@ -79,7 +79,7 @@ def get_record_list():
 
         time = info[1]
 
-        item = (addr, time, url)
+        item = (addr, time, url, status)
         res.append(item)
 
     fin.close()
@@ -113,16 +113,20 @@ def run():
         runjsjs = re.search(r"^\/js\/.*\.js", url)
         if runjsjs:
             user_scores[addr] = user_scores[addr] | 8
-        runimages = re.search(r"^\/images\/.*\.png", url)
-        if runimages:
-            user_scores[addr] = user_scores[addr] | 16
+        #runimages = re.search(r"^\/images\/.*\.png", url)
+        #if runimages:
+        #    user_scores[addr] = user_scores[addr] | 16
 
     # Find users requesting for html pages
     for i in range(len(rlist)):
         addr = rlist[i][0]
         if addr not in user_scores:
             continue
-        if user_scores[addr] != 31:
+        if user_scores[addr] != 15:
+            continue
+        status = rlist[i][3]
+
+        if status != '200':
             continue
 
         url = rlist[i][2]
